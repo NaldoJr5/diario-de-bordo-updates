@@ -29,7 +29,7 @@ function Get-InstalledQaEntry {
     if (-not (Test-Path -LiteralPath $root)) { continue }
     foreach ($key in Get-ChildItem -LiteralPath $root -ErrorAction SilentlyContinue) {
       $entry = Get-ItemProperty -LiteralPath $key.PSPath -ErrorAction SilentlyContinue
-      if ($entry.DisplayName -and
+      if ($entry -and $entry.PSObject.Properties["DisplayName"] -and $entry.DisplayName -and
           $entry.DisplayName -match "Di[aá]rio de Bordo" -and
           $entry.DisplayName -match "Updater QA|Atualizador QA") {
         $foundEntries += $entry
@@ -38,6 +38,9 @@ function Get-InstalledQaEntry {
   }
   if ($foundEntries.Count -ne 1) {
     throw "Expected exactly one installed QA app entry; found $($foundEntries.Count)."
+  }
+  if (-not $foundEntries[0].PSObject.Properties["DisplayVersion"]) {
+    throw "The QA app uninstall entry does not expose its installed version."
   }
   return $foundEntries[0]
 }
